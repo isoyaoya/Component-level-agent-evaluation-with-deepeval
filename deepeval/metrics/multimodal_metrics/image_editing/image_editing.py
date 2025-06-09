@@ -15,6 +15,7 @@ from deepeval.metrics.utils import (
     check_mllm_test_case_params,
     initialize_multimodal_model,
 )
+from deepeval.models.llms.amazon_bedrock_model import AmazonBedrockModel
 from deepeval.models import DeepEvalBaseMLLM
 from deepeval.metrics.multimodal_metrics.image_editing.schema import ReasonScore
 from deepeval.metrics.indicator import metric_progress_indicator
@@ -35,7 +36,7 @@ class ImageEditingMetric(BaseMultimodalMetric):
         strict_mode: bool = False,
         verbose_mode: bool = False,
     ):
-        self.model, self.using_native_model = initialize_multimodal_model(model)
+        self.model, self.using_native_model = model, False
         self.evaluation_model = self.model.get_model_name()
         self.threshold = 1 if strict_mode else threshold
         self.strict_mode = strict_mode

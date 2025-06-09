@@ -317,12 +317,16 @@ def initialize_model(
     """
     Returns a tuple of (initialized DeepEvalBaseLLM, using_native_model boolean)
     """
-    # If model is natively supported, it should be deemed as using native model
+    # First check if model is an instance of AmazonBedrockModel
+    if isinstance(model, AmazonBedrockModel):
+        return model, True
+    # Then check if model is natively supported
     if is_native_model(model):
         return model, True
-    # If model is a DeepEvalBaseLLM but not a native model, we can not assume it is a native model
+    # Then check if model is a DeepEvalBaseLLM but not a native model
     if isinstance(model, DeepEvalBaseLLM):
         return model, False
+    # Check various model providers
     if should_use_gemini_model():
         return GeminiModel(), True
     if should_use_ollama_model():
@@ -332,11 +336,14 @@ def initialize_model(
     elif should_use_azure_openai():
         return AzureOpenAIModel(model=model), True
     elif isinstance(model, str) or model is None:
+        # Check if model string indicates Bedrock
+        if isinstance(model, str) and "anthropic" in model.lower():
+            return AmazonBedrockModel(model_id=model, region_name="us-east-1"), True
         return GPTModel(model=model), True
 
     # Otherwise (the model is a wrong type), we raise an error
     raise TypeError(
-        f"Unsupported type for model: {type(model)}. Expected None, str, DeepEvalBaseLLM, GPTModel, AzureOpenAIModel, OllamaModel, LocalModel."
+        f"Unsupported type for model: {type(model)}. Expected None, str, DeepEvalBaseLLM, GPTModel, AzureOpenAIModel, OllamaModel, LocalModel, AmazonBedrockModel."
     )
 
 
@@ -351,6 +358,7 @@ def is_native_model(
         or isinstance(model, LocalModel)
         or isinstance(model, GeminiModel)
         or isinstance(model, AmazonBedrockModel)
+        or (isinstance(model, str) and "anthropic" in model.lower())
     ):
         return True
     else:

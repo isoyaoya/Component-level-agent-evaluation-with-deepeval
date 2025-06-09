@@ -1,9 +1,12 @@
-from typing import List, Union, Dict
+from typing import Optional, List, Tuple, Union
 
 from deepeval.metrics.indicator import metric_progress_indicator
+from deepeval.models import DeepEvalBaseLLM
 from deepeval.metrics.utils import (
     construct_verbose_logs,
+    trimAndLoadJson,
     check_llm_test_case_params,
+    initialize_model,
 )
 from deepeval.test_case import (
     LLMTestCase,
@@ -33,6 +36,7 @@ class ToolCorrectnessMetric(BaseMetric):
         verbose_mode: bool = False,
         should_exact_match: bool = False,
         should_consider_ordering: bool = False,
+        model: Optional[Union[str, DeepEvalBaseLLM]] = None,
     ):
         self.threshold = 1 if strict_mode else threshold
         self.include_reason = include_reason
@@ -41,6 +45,7 @@ class ToolCorrectnessMetric(BaseMetric):
         self.evaluation_params: List[ToolCallParams] = evaluation_params
         self.should_exact_match = should_exact_match
         self.should_consider_ordering = should_consider_ordering
+        self.model, self.using_native_model = initialize_model(model)
 
     def measure(
         self,

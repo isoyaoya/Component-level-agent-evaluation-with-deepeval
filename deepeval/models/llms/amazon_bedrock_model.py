@@ -132,3 +132,20 @@ class AmazonBedrockModel(DeepEvalBaseLLM):
 
     def get_model_name(self) -> str:
         return self.model_id
+
+    async def a_generate_raw_response(
+        self, prompt: str, top_logprobs: Optional[int] = None
+    ) -> Tuple[Dict, float]:
+        """Generate a raw response with logprobs for GEval"""
+        # Since Bedrock doesn't support logprobs, we'll create a compatible response format
+        message, cost = await self.a_generate(prompt)
+        return {
+            "choices": [{"message": {"content": message}}],
+            "logprobs": None
+        }, cost
+
+    def generate_raw_response(
+        self, prompt: str, top_logprobs: Optional[int] = None
+    ) -> Tuple[Dict, float]:
+        """Generate a raw response with logprobs for GEval"""
+        return asyncio.run(self.a_generate_raw_response(prompt, top_logprobs))
