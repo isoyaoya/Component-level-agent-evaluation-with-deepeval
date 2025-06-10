@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple, Union
+from typing import Dict, List, Optional, Union, Any
 
 from deepeval.metrics.indicator import metric_progress_indicator
 from deepeval.models import DeepEvalBaseLLM
