@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to create a SageMaker notebook instance with Bedrock access'
+
+Resources:
+  # IAM Role for SageMaker with Bedrock access
+  SageMakerNotebookRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sagemaker.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+        - arn:aws:iam::aws:policy/AmazonBedrockFullAccess
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      Path: /
+
+  # SageMaker Notebook Instance
+  SageMakerNotebook:
+    Type: AWS::SageMaker::NotebookInstance
+    Properties:
+      InstanceType: ml.g5.xlarge
+      RoleArn: !GetAtt SageMakerNotebookRole.Arn
+      NotebookInstanceName: SageMakerBedrockNotebook
+      DirectInternetAccess: Enabled
+      VolumeSizeInGB: 50
+
+Outputs:
+  NotebookInstanceId:
+    Description: ID of the SageMaker Notebook Instance
+    Value: !Ref SageMakerNotebook
+  
+  NotebookInstanceUrl:
+    Description: URL of the SageMaker Notebook Instance
+    Value: !Sub https://console.aws.amazon.com/sagemaker/home?region=${AWS::Region}#/notebook-instances/openNotebook/${SageMakerNotebook}?view=classic
+  
+  RoleArn:
+    Description: ARN of the IAM Role for SageMaker with Bedrock access
+    Value: !GetAtt SageMakerNotebookRole.Arn
